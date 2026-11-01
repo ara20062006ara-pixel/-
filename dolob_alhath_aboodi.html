@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#11182f">
+<title>دولاب الحظ - عبودي</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px 12px 32px;background:linear-gradient(160deg,#263761,#101629 70%);color:#fff;font-family:Arial,Tahoma,sans-serif}
+main{max-width:460px;margin:auto}.head{text-align:center}.head h1{font-size:28px;margin:8px 0}.head p{color:#cbd5ef;margin:0}
+.stats{display:flex;gap:10px;margin:16px 0}.stat,.panel{background:#202b4b;border:1px solid #46577e;border-radius:15px;padding:13px}.stat{flex:1;text-align:center}.stat small{display:block;color:#cbd5ef}.stat strong{display:block;font-size:25px;color:#ffdc7b;margin-top:4px}
+.wheelbox{width:min(86vw,340px);height:min(86vw,340px);position:relative;margin:22px auto 15px}
+.pointer{position:absolute;z-index:5;top:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:34px solid #fff}
+#wheel{position:absolute;inset:0;border-radius:50%;border:9px solid #f7d978;background:conic-gradient(#ffcf58 0deg 24deg,#e88b4a 24deg 48deg,#9276e7 48deg 72deg,#49b9a9 72deg 96deg,#e66e91 96deg 120deg,#5798dd 120deg 144deg,#ffcf58 144deg 168deg,#e88b4a 168deg 192deg,#9276e7 192deg 216deg,#49b9a9 216deg 240deg,#e66e91 240deg 264deg,#5798dd 264deg 288deg,#ffcf58 288deg 312deg,#e88b4a 312deg 336deg,#9276e7 336deg 360deg);transition:transform 4s cubic-bezier(.12,.72,.12,1)}
+.number{position:absolute;width:34px;height:26px;border-radius:7px;background:#fff;color:#111!important;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;z-index:2;left:50%;top:50%;margin-left:var(--x);margin-top:var(--y);transform:translate(-50%,-50%)}
+.hub{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:linear-gradient(#fff0a9,#e8aa38);border:6px solid white;color:#332407;display:grid;place-items:center;font-weight:bold}
+#status{text-align:center;color:#ffdf86;min-height:26px;font-weight:bold}
+button{width:100%;border:0;border-radius:13px;padding:14px;margin-top:9px;font-size:16px;font-weight:bold;background:linear-gradient(120deg,#ffe995,#ffbd48);color:#171d32}
+button.alt{background:#35466c;color:#fff;border:1px solid #61749c}button:disabled{opacity:.5}
+.panel{margin-top:13px}.panel h3{margin:0 0 8px;color:#ffdb7a}.panel p{font-size:14px;line-height:1.7;color:#d8e0f5;margin:6px 0}
+.barbg{height:11px;background:#10182e;border-radius:20px;overflow:hidden;margin:10px 0}.bar{height:100%;width:0;background:#43d6a1}
+.note{text-align:center;color:#9caaca;font-size:11px;line-height:1.6;margin-top:14px}
+</style>
+</head>
+<body><main>
+<header class="head"><h1>🎡 دولاب الحظ</h1><p>اجمع النقاط وافتح صندوق الهدايا</p></header>
+<section class="stats">
+<div class="stat"><small>⭐ نقاطك</small><strong id="points">0</strong></div>
+<div class="stat"><small>👥 مرات فتح اللعبة بهذا الجهاز</small><strong id="visits">1</strong></div>
+</section>
+<div class="wheelbox"><div class="pointer"></div><div id="wheel"></div><div class="hub">لف!</div></div>
+<div id="status">لفتك المجانية جاهزة الآن!</div>
+<button id="spin">🎯 لف الدولاب</button>
+<section class="panel">
+<h3>🎁 صندوق الهدايا</h3><p><b>اربح كود ببجي مهكرة – شدات PUBG UC</b></p>
+<p>اجمع 150 نقطة حتى تفتح الصندوق.</p>
+<div class="barbg"><div class="bar" id="bar"></div></div><p id="progress">0 / 150 نقطة</p>
+<button id="chest" disabled>🔒 افتح الصندوق عند 150 نقطة</button>
+</section>
+<section class="panel">
+<h3>📢 قناتي على تيليجرام</h3>
+<p>تابع القناة حتى توصلك آخر الأخبار والتحديثات.</p>
+<button class="alt" id="channel">🚀 افتح قناتي على تيليجرام</button>
+</section>
+<section class="panel">
+<h3>📣 شارك اللعبة واربح لفة إضافية</h3>
+<p>مشاركة تجريبية: تمنح لفة إضافية واحدة على هذا الجهاز. احتساب دعوات اللاعبين يحتاج قاعدة بيانات أونلاين.</p>
+<button class="alt" id="share">مشاركة اللعبة</button><p id="sharemsg"></p>
+</section>
+<div class="note">النسخة التجريبية تحفظ النقاط والوقت على هذا الجهاز فقط.</div>
+</main>
+<script>
+(function(){
+var prizes=[0,1,2,3,5,8,10,15,20,30,50,70,100,1,2];
+var weights=[28,22,18,13,8,5,3,1.5,.8,.4,.15,.05,.001,22,18];
+var storageKey='aboodi_wheel_reliable_v3',data={points:0,last:0,bonus:false,visits:0};
+try{var old=JSON.parse(localStorage.getItem(storageKey)||'null');if(old)data=old;}catch(e){}
+data.points=Number(data.points)||0;data.last=Number(data.last)||0;data.bonus=!!data.bonus;data.visits=(Number(data.visits)||0)+1;
+function save(){try{localStorage.setItem(storageKey,JSON.stringify(data));}catch(e){}}
+var wheel=document.getElementById('wheel'),spinBtn=document.getElementById('spin'),busy=false,turn=0;
+prizes.forEach(function(v,i){
+ var angle=(i*24+12-90)*Math.PI/180,rad=wheel.clientWidth*.365;
+ var n=document.createElement('div');n.className='number';n.textContent=String(v);
+ n.style.setProperty('--x',(Math.cos(angle)*rad)+'px');n.style.setProperty('--y',(Math.sin(angle)*rad)+'px');wheel.appendChild(n);
+});
+function remaining(){return Math.max(0,21600000-(Date.now()-data.last));}
+function clock(ms){var s=Math.ceil(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return [h,m,r].map(function(x){return String(x).padStart(2,'0')}).join(':');}
+function update(){
+ document.getElementById('points').textContent=data.points;
+ document.getElementById('visits').textContent=data.visits;
+ document.getElementById('bar').style.width=Math.min(100,data.points/150*100)+'%';
+ document.getElementById('progress').textContent=Math.min(data.points,150)+' / 150 نقطة';
+ var chest=document.getElementById('chest');chest.disabled=data.points<150;chest.textContent=data.points>=150?'🎁 افتح صندوق الهدايا':'🔒 افتح الصندوق عند 150 نقطة';
+ spinBtn.disabled=busy||(!data.bonus&&remaining()>0);
+ if(busy)return;
+ document.getElementById('status').textContent=data.bonus?'عندك لفة إضافية جاهزة!':remaining()>0?'اللفة المجانية القادمة بعد: '+clock(remaining()):'لفتك المجانية جاهزة الآن!';
+}
+function pick(){var sum=weights.reduce(function(a,b){return a+b},0),r=Math.random()*sum;for(var i=0;i<weights.length;i++){r-=weights[i];if(r<=0)return i;}return 0;}
+spinBtn.addEventListener('click',function(){
+ if(busy)return;
+ if(!data.bonus&&remaining()>0){update();return;}
+ if(data.bonus)data.bonus=false;else data.last=Date.now();
+ var index=pick(),won=prizes[index];busy=true;spinBtn.disabled=true;
+ turn+=2160+(360-(index*24+12));wheel.style.transform='rotate('+turn+'deg)';
+ document.getElementById('status').textContent='الدولاب يلف...';
+ setTimeout(function(){data.points+=won;busy=false;save();document.getElementById('status').textContent='مبروك! ربحت '+won+' نقطة 🎉';update();},4200);
+});
+document.getElementById('channel').addEventListener('click',function(){
+ window.location.href='https://t.me/a_gg18';
+});
+document.getElementById('share').addEventListener('click',function(){
+ if(!data.bonus){data.bonus=true;document.getElementById('sharemsg').textContent='تمت إضافة لفة مشاركة تجريبية!';save();update();}
+ var shareText='تعال العب دولاب الحظ!';
+ if(navigator.share){navigator.share({title:'دولاب الحظ',text:shareText}).catch(function(){});}
+ else{document.getElementById('sharemsg').textContent+=' انسخ رابط الصفحة من المتصفح وشاركه.';}
+});
+document.getElementById('chest').addEventListener('click',function(){if(data.points>=150)location.href='https://t.me/YsimBot?start=to23c9f2cc4f79f2fb4ed2d5c1c6ab08cf50973';});
+save();update();setInterval(update,1000);
+})();
+</script>
+</body></html>
